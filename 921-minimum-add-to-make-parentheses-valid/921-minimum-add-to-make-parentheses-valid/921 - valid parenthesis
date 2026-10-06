@@ -1,0 +1,103 @@
+# 921. Minimum Add to Make Parentheses Valid
+
+**Difficulty:** Medium | **Topics:** String, Stack, Greedy
+
+[LeetCode Problem](https://leetcode.com/problems/minimum-add-to-make-parentheses-valid/)
+
+## Problem
+A parentheses string is valid if it is empty, or can be written as `AB` or `(A)` where `A` and `B` are valid.
+
+Given a string `s` of `'('` and `')'`, in one move you can insert a parenthesis at any position. Return the minimum number of moves needed to make `s` valid.
+
+**Examples**
+
+| Input | Output | Explanation |
+|-------|--------|-------------|
+| `"())"` | `1` | Insert one `(` at the start |
+| `"((("` | `3` | Insert three `)` at the end |
+| `")("` | `2` | Insert `(` before and `)` after |
+| `"()"` | `0` | Already valid |
+
+## Approaches
+
+### 1. Stack
+Push each `(`. On `)`, pop if the stack is non-empty, otherwise count one unmatched `)`. The answer is the unmatched `)` count plus the leftover stack size.
+
+Time: O(n), Space: O(n).
+
+### 2. Counter (optimal)
+The stack only ever holds `(`, so we don't need the stack itself, just its size. Replace it with one integer.
+
+- `open`: unmatched `(` so far
+- `add`: unmatched `)` so far
+
+| Char | Action |
+|------|--------|
+| `(` | `open++` |
+| `)` and `open > 0` | `open--` (matched) |
+| `)` and `open == 0` | `add++` (needs an inserted `(`) |
+
+Answer: `add + open`.
+
+**Why it is optimal:** an unmatched `)` can only be fixed by inserting a `(` before it, and an unmatched `(` can only be fixed by inserting a `)` after it. Each insertion fixes exactly one unmatched character, so no solution can use fewer.
+
+**Dry run: `"())"`**
+
+| char | open | add |
+|------|------|-----|
+| `(` | 1 | 0 |
+| `)` | 0 | 0 |
+| `)` | 0 | 1 |
+
+Answer: `1 + 0 = 1`.
+
+**Dry run: `")("`**
+
+| char | open | add |
+|------|------|-----|
+| `)` | 0 | 1 |
+| `(` | 1 | 1 |
+
+Answer: `1 + 1 = 2`. Order matters here: the `(` comes after the `)`, so it can't fix it.
+
+## Solution (Java)
+
+```java
+class Solution {
+    public int minAddToMakeValid(String s) {
+        int open = 0; // unmatched '(' so far
+        int add = 0;  // insertions needed for unmatched ')'
+
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+
+            if (c == '(') {
+                open++;
+            } else { // ')'
+                if (open > 0) {
+                    open--;
+                } else {
+                    add++;
+                }
+            }
+        }
+
+        return add + open;
+    }
+}
+```
+
+## Complexity
+- **Time:** O(n)
+- **Space:** O(1)
+
+## Edge Cases
+`""`, `"("`, `")"`, `"()"`, `")("`, `"((("`, `")))"`
+
+## Related Problems
+- [678. Valid Parenthesis String](../678-valid-parenthesis-string/): the same unmatched-`(` counting, but with a `*` wildcard that needs a min/max range
+- 20. Valid Parentheses
+- 1249. Minimum Remove to Make Valid Parentheses
+
+## Key Takeaway
+If a stack only ever stores one kind of item, replace it with a counter. This turns O(n) space into O(1).
